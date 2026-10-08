@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Runner Game</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #87ceeb;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 15px 0 5px;
+        }
+
+        #score {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #game {
+            position: relative;
+            width: 95%;
+            max-width: 900px;
+            height: 400px;
+            margin: auto;
+            overflow: hidden;
+            background: linear-gradient(#87ceeb 0%, #dff6ff 70%, #7ec850 70%);
+            border: 4px solid #222;
+        }
+
+        #player {
+            position: absolute;
+            width: 45px;
+            height: 55px;
+            background: #e53935;
+            border-radius: 10px;
+            left: 70px;
+            bottom: 55px;
+        }
+
+        #player::before {
+            content: "🏃";
+            position: absolute;
+            font-size: 38px;
+            left: 2px;
+            top: 5px;
+        }
+
+        #obstacle {
+            position: absolute;
+            width: 35px;
+            height: 50px;
+            background: #333;
+            right: -50px;
+            bottom: 55px;
+            border-radius: 5px;
+        }
+
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 55px;
+            background: #4caf50;
+            border-top: 5px solid #654321;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #222;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #444;
+        }
+
+        #message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🏃 Endless Runner</h1>
+
+    <div id="score">Score: 0</div>
+
+    <div id="game">
+
+        <div id="player"></div>
+
+        <div id="obstacle"></div>
+
+        <div id="ground"></div>
+
+    </div>
+
+    <div id="message">
+        Tap / Space to Jump
+    </div>
+
+    <button onclick="restartGame()">🔄 Restart</button>
+
+<script>
+
+const player = document.getElementById("player");
+const obstacle = document.getElementById("obstacle");
+const scoreText = document.getElementById("score");
+const message = document.getElementById("message");
+
+let jumping = false;
+let gameOver = false;
+let score = 0;
+
+let obstaclePosition = 900;
+let playerBottom = 55;
+
+function jump() {
+
+    if (jumping || gameOver) return;
+
+    jumping = true;
+
+    let jumpHeight = 0;
+
+    const jumpUp = setInterval(() => {
+
+        jumpHeight += 8;
+
+        player.style.bottom = (55 + jumpHeight) + "px";
+
+        if (jumpHeight >= 150) {
+
+            clearInterval(jumpUp);
+
+            const jumpDown = setInterval(() => {
+
+                jumpHeight -= 8;
+
+                player.style.bottom = (55 + jumpHeight) + "px";
+
+                if (jumpHeight <= 0) {
+
+                    clearInterval(jumpDown);
+
+                    player.style.bottom = "55px";
+
+                    jumping = false;
+                }
+
+            }, 20);
+        }
+
+    }, 20);
+}
+
+document.addEventListener("keydown", function(event) {
+
+    if (event.code === "Space" || event.code === "ArrowUp") {
+        event.preventDefault();
+        jump();
+    }
+
+});
+
+document.addEventListener("touchstart", function() {
+    jump();
+});
+
+function gameLoop() {
+
+    if (gameOver) return;
+
+    obstaclePosition -= 7;
+
+    if (obstaclePosition < -50) {
+
+        obstaclePosition = 900;
+
+        score++;
+
+        scoreText.innerText = "Score: " + score;
+    }
+
+    obstacle.style.left = obstaclePosition + "px";
+
+    checkCollision();
+
+    requestAnimationFrame(gameLoop);
+}
+
+function checkCollision() {
+
+    const playerRect = player.getBoundingClientRect();
+    const obstacleRect = obstacle.getBoundingClientRect();
+
+    if (
+        playerRect.right > obstacleRect.left &&
+        playerRect.left < obstacleRect.right &&
+        playerRect.bottom > obstacleRect.top &&
+        playerRect.top < obstacleRect.bottom
+    ) {
+
+        gameOver = true;
+
+        message.innerText = "💀 Game Over! Score: " + score;
+
+    }
+}
+
+function restartGame() {
+
+    gameOver = false;
+    jumping = false;
+    score = 0;
+
+    obstaclePosition = 900;
+
+    scoreText.innerText = "Score: 0";
+    message.innerText = "Tap / Space to Jump";
+
+    player.style.bottom = "55px";
+    obstacle.style.left = "900px";
+
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+
+</script>
+
+</body>
+</html>
